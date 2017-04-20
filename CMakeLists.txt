@@ -1,6 +1,6 @@
 # ==============================================================================
 cmake_minimum_required (VERSION 3.6)
-project (ExpressionEvaluator)
+project (OpEval)
 set (CMAKE_C_STANDARD 11)
 
 # ------------------------------------------------------------------------------
@@ -20,5 +20,7 @@ file(GLOB_RECURSE
 add_executable(tgt_exeBinary 
 	"${var_SOURCE_FILES}"
     "${var_HEADER_FILES}")
-
+	
+set_target_properties(tgt_exeBinary PROPERTIES
+					  OUTPUT_NAME "opeval")
 # ------------------------------------------------------------------------------
