@@ -1,80 +1,69 @@
 #include "tree.h"
 
-// set these to to NULL as we cannot define default handlers:
-T_CREATE_EXTRANODEDATA_F defaultCreateExtraNodeData = NULL;
-T_DESTROY_EXTRANODEDATA_F defaultDestroyExtraNodeData = NULL;
 
-T_NODEDATA* newNodeData() {
-
-    T_NODEDATA* nodeData = malloc(sizeof(T_NODEDATA));
-    if (nodeData != NULL) {
-        nodeData->index = 0;
-        nodeData->children = 0;
-    }
-    return nodeData;
-}
-
-T_NODEDATA* createNodeData() { 
-    return newNodeData();
-}
-
-void destroyNodeData(T_NODEDATA* nodeData) {
-
-    if (nodeData != NULL)
-        free(nodeData);
-}
+T_TREEOPTIONS treeOptions = { 
+    // set these to to NULL as we cannot define default handlers:
+    NULL, // createNodeData
+    NULL  // destroyNodeData
+};
 
 T_NODE* newNode()
 {
     T_NODE* node = malloc(sizeof(T_NODE));
     if (node != NULL)
     {
-        node->data = NULL;
-        node->extraData = NULL;
+        node->index = 0;
         node->left = NULL;
         node->right = NULL;
+        node->data = NULL;
     }
     return node;
 }
 
-T_NODE* createNode(T_CREATE_EXTRANODEDATA_F createExtraNode) {
+T_NODE* createNode(unsigned int leafCount, int level) {
 
     T_NODE* node = newNode();
     
     if (node != NULL) {
-        node->left = createNode(createExtraNode);
-        node->right = createNode(createExtraNode);
-        node->data = createNodeData();
 
-        if (createExtraNode == NULL)
-            createExtraNode = defaultCreateExtraNodeData;
+        if (node->index <= TREE_NODES_FROM_LEAVES(leafCount))
+        {
+            node->left = createNode(leafCount, level + 1);
+            node->right = createNode(leafCount, level + 1);
+        }
 
-        if (createExtraNode != NULL)
-            node->extraData = (*createExtraNode)(node->data);
+        if (treeOptions.createNodeData != NULL)
+            node->data = (*treeOptions.createNodeData)(node->data);
     }
     return node;
 
 }
-void destroyNode(T_NODE* node, T_DESTROY_EXTRANODEDATA_F destroyExtraNode) {
+
+void destroyNode(T_NODE* node) {
 
     if (node != NULL) {
-        destroyNodeData(node->data);
-        node->data = NULL;
-        destroyNode(node->left, destroyExtraNode);
+        destroyNode(node->left);
         node->left = NULL;
-        destroyNode(node->right, destroyExtraNode);
+        destroyNode(node->right);
         node->right = NULL;
 
-        if (destroyExtraNode == NULL)
-            destroyExtraNode = defaultDestroyExtraNodeData;
-
-        if (destroyExtraNode != NULL) {
-            (*destroyExtraNode)(node->extraData);
-            node->extraData = NULL;
+        if (treeOptions.destroyNodeData != NULL) {
+            (*treeOptions.destroyNodeData)(node->data);
+            node->data = NULL;
         }
 
         free(node);
     }
+}
+
+T_NODESTACK* newNodeStack() {
+    T_NODESTACK* stack = malloc(sizeof(T_NODESTACK));
+    if (stack != NULL) {
+        stack->size = 0;
+        stack->stack = NULL;
+        stack->node = NULL;
+    }
+    return stack;
 }
 
 T_TREE* newTree()
@@ -86,19 +75,19 @@ T_TREE* newTree()
     return tree;
 }
 
-T_TREE* createTree(T_CREATE_EXTRANODEDATA_F createExtraNode) {
+T_TREE* createTree(unsigned int leafCount) {
 
     T_TREE* tree = newTree();
     if (tree != NULL) {
-        tree->root = createNode(createExtraNode);
+        tree->root = createNode();
     }
     return tree;
 }
 
-void destroyTree(T_TREE* tree, T_DESTROY_EXTRANODEDATA_F destroyExtraNode) {
+void destroyTree(T_TREE* tree) {
 
     if (tree != NULL) {
-        destroyNode(tree->root, destroyExtraNode);
+        destroyNode(tree->root);
         tree->root = NULL;
         free(tree);
     }
