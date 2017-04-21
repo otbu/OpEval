@@ -42,9 +42,9 @@ class Node:
         self.right = right
 
     def __str__(self):
-        str_format = '{left}{right}0 '
+        str_format = '{left}{right}0'
         if self.is_leaf():
-            return '1 '
+            return '1'
             #return str_format.format(index='', left='', right='')
         else:
             return str_format.format(left=self.left, right=self.right)
@@ -116,8 +116,19 @@ def all_possible_trees_3(n, level=0):
     return list_nodes
 
 if __name__ == '__main__':
-    list_trees = all_possible_trees_2b(12)
+    num_leaves = 4
+    list_trees = all_possible_trees_2b(num_leaves)
     list_tree_strings = [str(tree) for tree in list_trees]
+
+    #for _ in range(((num_leaves-1)//2)-1):
+    #    list_tree_strings = [s[1:-1] for s in list_tree_strings]
+
+    #list_tree_strings = [s[1:-1] for s in list_tree_strings]
+    #list_tree_strings = [s[1:-1] for s in list_tree_strings]
+    #list_tree_strings = [s[1:-1] for s in list_tree_strings]
+    #list_tree_strings = [s[1:-1] for s in list_tree_strings]
+    #list_tree_strings = [s[1:-1] for s in list_tree_strings]
+    #list_tree_strings = [s[1:-1] for s in list_tree_strings]
 
     set_seen = set()
     list_uniq = []
@@ -126,8 +137,6 @@ if __name__ == '__main__':
             list_uniq.append(x)
             set_seen.add(x)
         del x
-
-
 
     for idx,s in enumerate(list_tree_strings):
         print('%u %s' % (idx, s))
