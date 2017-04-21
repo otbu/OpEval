@@ -79,7 +79,7 @@ T_TREE* createTree(unsigned int leafCount) {
 
     T_TREE* tree = newTree();
     if (tree != NULL) {
-        tree->root = createNode();
+        //tree->root = createNode();
     }
     return tree;
 }

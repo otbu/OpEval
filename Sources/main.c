@@ -46,8 +46,6 @@ def all_possible_trees_2(n):
     Does the stack need to support nodes?
     Do we need a list of treenodes?
 
-*/
-
 T_NODESTACK* all_possible_trees(unsigned int n)
 {
     if (n == 1) {
@@ -62,18 +60,21 @@ T_NODESTACK* all_possible_trees(unsigned int n)
 
 }
 
+*/
 
-
+#include "evaluate_stub01.h"
 
 int main(int argc, char** argv)
 {
-    treeOptions.createNodeData = createData;
-    treeOptions.destroyNodeData = destroyData;
+    //treeOptions.createNodeData = createData;
+    //treeOptions.destroyNodeData = destroyData;
 
-    unsigned int leafCount = 4;
-    T_TREE* tree = createTree(leafCount);
+    //unsigned int leafCount = 4;
+    //T_TREE* tree = createTree(leafCount);
     
-    destroyTree(tree);
+    //destroyTree(tree);
+
+    evaluate_trees();
 
     return 0;
 }
