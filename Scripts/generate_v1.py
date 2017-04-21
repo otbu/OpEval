@@ -42,9 +42,20 @@ def all_possible_trees(n):
         for left, right in itertools.product(gen_left, gen_right):
             yield [left, right]
 
+def all_possible_trees2(n):
+    if n == 1:
+        return str_leaf
+    list_nodes = list()
+    for split in range(1, n):
+        gen_left = all_possible_trees(split)
+        gen_right = all_possible_trees(n - split)
+        for left, right in itertools.product(gen_left, gen_right):
+            list_nodes.append([left, right])
+    return list_nodes
+
 # http://stackoverflow.com/questions/21447599/getting-the-number-of-digits-of-nonnegative-integers-python
 
-def test_all_possible_trees():
+def do_all_possible_trees():
 
     num_leaf_count = 9
 
@@ -67,13 +78,11 @@ def test_all_possible_trees():
             num_idx1 += 1
         del num_idx1, num_idx0
 
-
-
         print(str_thing)
 
         del list_tree
 
-def test_gendistinct():
+def do_gendistinct():
     #alltrees = gendistinct(4)
     #for tree in alltrees:
     #    print(tree)
@@ -82,7 +91,10 @@ def test_gendistinct():
     pass
 
 if __name__ == '__main__':
-    list_tuples = tuple(all_possible_tuples(8, 4))
-    for num_idx, thing in enumerate(list_tuples):
-        print(str(num_idx), end=': ')
+    for thing in all_possible_trees(4):
         print(thing)
+
+    #list_tuples = tuple(all_possible_tuples(8, 4))
+    #for num_idx, thing in enumerate(list_tuples):
+    #    print(str(num_idx), end=': ')
+    #    print(thing)
