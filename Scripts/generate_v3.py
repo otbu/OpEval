@@ -3,9 +3,12 @@
 # =============================================================================
 import itertools
 import abc
-import typing
 import decimal
-import sqlite3
+import multiprocessing as mp
+import queue
+#import sqlite3
+
+decimal_nan = decimal.Decimal('NaN')
 # -----------------------------------------------------------------------------
 
 # =============================================================================
@@ -133,18 +136,19 @@ dict_all_op_funcs = dict((
     ('+', lambda x,y: (x+y)), # 0 + addition
     ('-', lambda x,y: (x-y)), # 1 - subtraction
     ('*', lambda x,y: (x*y)), # 2 * multiplication
-    ('/', lambda x,y: (x/y)), # 3 / division
+    ('/', lambda x,y: (x//(decimal_nan if y==decimal_nan or y==int(0) else y))), # 3 / division
     ('^', lambda x,y: (x**y)), # 4 exponentiation
     ('|', lambda x,y: concatenate_numbers(x,y)) # 5 concatenation
 ))
+
 list_all_op_names = list(dict_all_op_funcs.keys())
-list_op_indices = [0,1,2,5]
+list_op_indices = [0,1,2,5,3]
 num_op_count = len(list_op_indices)
 list_op_names = [list_all_op_names[n] for n in list_op_indices]
 # -----------------------------------------------------------------------------
 
 # =============================================================================
-def postfix_expression(node_tree, tuple_operators, tuple_operands) -> typing.Iterable:
+def postfix_expression(node_tree, tuple_operators, tuple_operands) -> list:
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # tuple_operators has indices only:
     tuple_operators = tuple(list_op_names[idx] for idx in tuple_operators)
@@ -190,18 +194,19 @@ def evaluate_expression(str_expression: str):
             #list_stack.append(decimal.Decimal(elem))
             list_stack.append(int(elem))
 
-    return str_expression, list_stack[0]
+    value = list_stack[0]
+    return str_expression, value
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # -----------------------------------------------------------------------------
 
-list_num_cache = []
-list_data_cache = []
+
 
 # =============================================================================
-def iterate_evaluations(num_max_value):
+def iterate_evaluations(num_max_value: int, mp_queue1, mp_queue2):
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     num_leave_count = 9
-
+    list_num_cache = []
+    list_data_cache = []
     tuple_operand_ints = tuple(range(1, num_leave_count + 1))
     tuple_operand_strings = tuple(map(str, tuple_operand_ints))
 
@@ -212,41 +217,67 @@ def iterate_evaluations(num_max_value):
     gen_trees = (postfix_expression(
         node, ops, tuple_operand_strings)
         for (node, ops) in itertools.product(gen_trees, gen_tuples))
-    #gen_trees = ((tree, list('01-') + tree[1:]) for tree in gen_trees)
-    #gen_trees = (tree for sublist in gen_trees for tree in sublist)
+    gen_trees = ((tree, list('01-') + tree[1:]) for tree in gen_trees)
+    gen_trees = (tree for sublist in gen_trees for tree in sublist)
     gen_trees = (''.join(tree) for tree in gen_trees)
     gen_vals = (evaluate_expression(tree) for tree in gen_trees)
 
     num_max_count = 2 * abs(num_max_value) + 1
+    num_count = 0
     for num_idx, (str_tree, value) in enumerate(gen_vals):
 
-        if (abs(value) <= num_max_value) and (value not in list_num_cache):
-            list_num_cache.append(value)
-            tuple_data = (num_idx, str_tree, str(value))
-            list_data_cache.append(tuple_data)
+        #if (abs(value) <= num_max_value) and (value not in list_num_cache):
+        #    list_num_cache.append(value)
+        #    num_count += 1
+            #tuple_data = (num_idx, str_tree, str(value))
+            #list_data_cache.append(tuple_data)
+            #mp_conn_send.send(len(list_num_cache))
+
+        #try:
+        #    mp_queue1.put_nowait((num_idx, str_tree, value))
+        #except queue.Full:
+        #    pass
+
             #print('%u %s [%s]' % tuple_data, end='')
             #print(' (max=%d, count=%u)' % (num_max_value, len(list_data_cache)))
-        #else:
-            #print(len(list_data_cache), end='\n')
 
-        if len(list_data_cache) == num_max_count:
-            break
+        if value == 10958:
+        #if num_count == num_max_count:
+            try:
+                mp_queue2.put_nowait((num_idx, str_tree, value))
+            except queue.Full:
+                pass
+            #break
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # -----------------------------------------------------------------------------
 
 # =============================================================================
 def main():
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    mp_queue1 = mp.Queue(1)
+    mp_queue2 = mp.Queue(2)
+    #mp_conn_recv, mp_conn_send = mp.Pipe(False)
 
-    proc_eval = Process(target=iterate_evaluations, args=(9999,))
+    proc_eval = mp.Process(target=iterate_evaluations, args=(9999, mp_queue1, mp_queue2))# mp_conn_send))
     proc_eval.start()
-    while proc_eval.is_alive():
-        print(len(list_num_cache))
-        proc_eval.join(2)
 
-    list_data_cache.sort(key=lambda elem: int(elem[2]))
-    for tuple_data in list_data_cache:
-        print(tuple_data)
+    while proc_eval.is_alive():
+        proc_eval.join(2)
+        try:
+            # noinspection PyStringFormat
+            print('%8u: [%s] %8u' % mp_queue2.get_nowait())
+        except queue.Empty:
+            pass
+
+    #try:
+    #    # noinspection PyStringFormat
+    #    print('\nFound! %8u: [%s] %8u' % mp_queue2.get_nowait())
+    #except queue.Empty:
+    #    pass
+
+    #list_data_cache.sort(key=lambda elem: int(elem[2]))
+    #for tuple_data in list_data_cache:
+    #    print(tuple_data)
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # -----------------------------------------------------------------------------
@@ -255,8 +286,7 @@ def main():
 # =============================================================================
 if __name__ == '__main__':
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    from multiprocessing import Process
-
     main()
+    #evaluate_expression('123456-7|8*9|*-**')
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # -----------------------------------------------------------------------------
