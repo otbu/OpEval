@@ -1,14 +1,21 @@
 #include "tree.h"
 
-
+// =============================================================================
 T_TREEOPTIONS treeOptions = { 
     // set these to to NULL as we cannot define default handlers:
     NULL, // createNodeData
     NULL  // destroyNodeData
 };
 
-T_NODE* newNode()
-{
+unsigned long int catalanNumbers[20] = {
+    1,1,2,5,14,42,132,429,1430,4862,16796,58786,
+    208012,742900,2674440,9694845,35357670,129644790,
+    477638700, 1767263190
+};
+// -----------------------------------------------------------------------------
+
+// =============================================================================
+T_NODE* newNode() {
     T_NODE* node = malloc(sizeof(T_NODE));
     if (node != NULL)
     {
@@ -19,28 +26,99 @@ T_NODE* newNode()
     }
     return node;
 }
+// -----------------------------------------------------------------------------
 
-T_NODE* createNode(unsigned int leafCount, int level) {
+/*
+def all_possible_trees_2b(n) :
 
-    T_NODE* node = newNode();
-    
-    if (node != NULL) {
+    list_nodes = [Node()] * list_catalan[(n - 1)]
+    num_rotIdx = 0
+    for split in range(1, n) :
+        list_left = all_possible_trees_2b(split)
+        list_right = all_possible_trees_2b(n - split)
 
-        if (node->index <= TREE_NODES_FROM_LEAVES(leafCount))
-        {
-            node->left = createNode(leafCount, level + 1);
-            node->right = createNode(leafCount, level + 1);
+        num_leftLen = len(list_left)#; print(num_leftLen)
+        num_rightLen = len(list_right)#; print(num_rightLen)
+
+        for num_leftIdx in range(num_leftLen) :
+            for num_rightIdx in range(num_rightLen) :
+                list_currRotLeft = list_left[num_leftIdx]
+                list_currRotRight = list_right[num_rightIdx]
+                list_nodes[num_rotIdx] = Node(list_currRotLeft, list_currRotRight)
+                num_rotIdx += 1
+                return list_nodes
+*/
+
+// =============================================================================
+T_NODEARRAY* newNodeArray(unsigned int size) {
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    T_NODEARRAY* nodeArray = malloc(sizeof(T_NODEARRAY));
+    if (nodeArray != NULL)
+    {
+        nodeArray->size = size;
+        nodeArray->array = NULL;
+        nodeArray->node = NULL;
+        if (size != 0) {
+            nodeArray->array = malloc(size * sizeof(T_NODEARRAY*));
+            if (nodeArray->array != NULL) {
+                for (unsigned int n = 0; n < size; n++) {
+                    nodeArray->array[n] = newNodeArray(0);
+                }
+            }
+        }
+    }
+    return nodeArray;
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+}
+// -----------------------------------------------------------------------------
+
+// =============================================================================
+void destroyNodeArray(T_NODEARRAY* nodeArray) {
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    if (nodeArray != NULL)
+    {
+        if (nodeArray->node != NULL) {
+            destroyNode(nodeArray->node);
+            nodeArray->node = NULL;
         }
 
+        if (nodeArray->array != NULL) {
+            if (nodeArray->size != 0) {
+                for (unsigned int n = 0; n < nodeArray->size; n++) {
+                    destroyNodeArray(nodeArray->array[n]);
+                    nodeArray->array[n] = NULL;
+                }
+            }
+            free(nodeArray->array);
+            nodeArray->array = NULL;
+        }
+        nodeArray->size = 0;
+        free(nodeArray);
+    }
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+}
+// -----------------------------------------------------------------------------
+
+// =============================================================================
+T_NODE* createNode(unsigned int leafCount, int level) {
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    T_NODE* node = newNode();
+    if (node != NULL)
+    {
+        node->left = createNode(leafCount, level + 1);
+        node->right = createNode(leafCount, level + 1);
         if (treeOptions.createNodeData != NULL)
             node->data = (*treeOptions.createNodeData)(node->data);
     }
+    
     return node;
-
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 }
+// -----------------------------------------------------------------------------
 
+// =============================================================================
 void destroyNode(T_NODE* node) {
-
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     if (node != NULL) {
         destroyNode(node->left);
         node->left = NULL;
@@ -54,41 +132,41 @@ void destroyNode(T_NODE* node) {
 
         free(node);
     }
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 }
+// -----------------------------------------------------------------------------
 
-T_NODESTACK* newNodeStack() {
-    T_NODESTACK* stack = malloc(sizeof(T_NODESTACK));
-    if (stack != NULL) {
-        stack->size = 0;
-        stack->stack = NULL;
-        stack->node = NULL;
-    }
-    return stack;
-}
-
-T_TREE* newTree()
-{
+// =============================================================================
+T_TREE* newTree() {
     T_TREE* tree = malloc(sizeof(T_TREE));
     if (tree != NULL) {
         tree->root = NULL;
     }
     return tree;
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 }
+// -----------------------------------------------------------------------------
 
+// =============================================================================
 T_TREE* createTree(unsigned int leafCount) {
-
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     T_TREE* tree = newTree();
     if (tree != NULL) {
         //tree->root = createNode();
     }
     return tree;
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 }
+// -----------------------------------------------------------------------------
 
+// =============================================================================
 void destroyTree(T_TREE* tree) {
-
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     if (tree != NULL) {
         destroyNode(tree->root);
         tree->root = NULL;
         free(tree);
     }
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 }
+// -----------------------------------------------------------------------------
