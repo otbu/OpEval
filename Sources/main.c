@@ -13,6 +13,10 @@
 
 #include "tree.h"
 
+#define TEST_NLEAF 9
+#define TEST_NTREE 1430
+#define TEST_NNODE 17
+
 T_NODEDATA* createData() {
     return NULL;
 }
@@ -20,61 +24,38 @@ void destroyData(T_NODEDATA* data) {
     free(data);
 }
 
-/*
-# magic python 3 code:
-def all_possible_trees_2(n):
-    if n == 1:
-        return 'L'
-    list_nodes = list()
-    for split in range(1, n):
-        gen_left = all_possible_trees_2(split)
-        gen_right = all_possible_trees_2(n - split)
-        for l in gen_left:
-            for r in gen_right:
-                list_nodes.append([l,r])
-    return list_nodes
-
-    Observations:
-
-    You need a stack ADT that supports push and can contain other stack
-    objects. Similar to lists in python, although pop is not necessary but
-    can probably added easily. Also, the stack must have a size as well.
-
-    This stack must be iterable, so we can loop over all all possible sub-tree,
-    and push each of ...
-
-    Does the stack need to support nodes?
-    Do we need a list of treenodes?
-
-T_NODESTACK* all_possible_trees(unsigned int n)
+void analyzeNode(T_NODE* node, int* index, unsigned char* arr)
 {
-    if (n == 1) {
-        T_NODESTACK* stack = newNodeStack();
-        stack->node = newNode();
-        return stack;
+    if (node->left != NULL) {
+        analyzeNode(node->left, index, arr);
     }
-    for (unsigned int split = 1; split < n; n++) {
-        T_NODESTACK* leftStack = all_possible_trees(split);
-        T_NODESTACK* rightStack = all_possible_trees(n-split);
+    if (node->right != NULL) {
+        analyzeNode(node->right, index, arr);
     }
 
+    if ((node->left == NULL) && (node->right == NULL)) {
+        arr[(*index)++] = '1';
+    }
+    else {
+        arr[(*index)++] = '0';
+    }
 }
-
-*/
-
-#include "evaluate_stub01.h"
 
 int main(int argc, char** argv)
 {
-    //treeOptions.createNodeData = createData;
-    //treeOptions.destroyNodeData = destroyData;
-
-    //unsigned int leafCount = 4;
-    //T_TREE* tree = createTree(leafCount);
+    T_NODEARRAY* trees = createAllTrees(TEST_NLEAF);
     
-    //destroyTree(tree);
+    T_NODE nodes[TEST_NTREE];
+    unsigned char arrs[TEST_NTREE][TEST_NNODE+1];
 
-    evaluate_trees();
-
+    int index = 0;
+    for (unsigned int i = 0; i < trees->size; i++) {
+        nodes[i] = *(trees->array[i]->node); // copy?
+        index = 0;
+        arrs[i][TEST_NNODE] = '\0';
+        analyzeNode(&(nodes[i]), &index, arrs[i]);
+    }
+    
+    destroyNodeArray(trees);
     return 0;
 }

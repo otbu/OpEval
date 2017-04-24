@@ -66,11 +66,13 @@ void destroyNodeArray(T_NODEARRAY* nodeArray);
 T_TREE* newTree();
 T_TREE* createTree(unsigned int leafCount);
 void destroyTree(T_TREE* tree);
+
+T_NODEARRAY* createAllTrees(unsigned int n);
 // -----------------------------------------------------------------------------
 
 // =============================================================================
 extern T_TREEOPTIONS treeOptions;
-extern unsigned long int catalanNumbers[];
+extern const unsigned long int catalanNumbers[];
 // -----------------------------------------------------------------------------
 
 

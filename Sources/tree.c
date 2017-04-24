@@ -7,7 +7,7 @@ T_TREEOPTIONS treeOptions = {
     NULL  // destroyNodeData
 };
 
-unsigned long int catalanNumbers[20] = {
+const unsigned long int catalanNumbers[20] = {
     1,1,2,5,14,42,132,429,1430,4862,16796,58786,
     208012,742900,2674440,9694845,35357670,129644790,
     477638700, 1767263190
@@ -24,7 +24,62 @@ T_NODE* newNode() {
         node->right = NULL;
         node->data = NULL;
     }
+    printf("newNode(%p)\n", (void*)node);
     return node;
+}
+// -----------------------------------------------------------------------------
+
+// =============================================================================
+T_NODEARRAY* newNodeArray(unsigned int size) {
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    T_NODEARRAY* nodeArray = malloc(sizeof(T_NODEARRAY));
+    if (nodeArray != NULL)
+    {
+        nodeArray->size = size;
+        nodeArray->array = NULL;
+        nodeArray->node = NULL;
+
+        if (size != 0) {
+            nodeArray->array = malloc(size * sizeof(T_NODEARRAY*));
+            if (nodeArray->array != NULL) {
+                for (unsigned int n = 0; n < size; n++) {
+                    nodeArray->array[n] = newNodeArray(0);
+                }
+            }
+        }
+        else if (size == 0)
+        {
+            nodeArray->node = newNode();
+        }
+    }
+    return nodeArray;
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+}
+// -----------------------------------------------------------------------------
+
+// =============================================================================
+void destroyNodeArray(T_NODEARRAY* nodeArray) {
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    if (nodeArray != NULL)
+    {
+        if (nodeArray->node != NULL) {
+            destroyNode(nodeArray->node);
+            nodeArray->node = NULL;
+        }
+        
+        if (nodeArray->array != NULL) {
+            for (unsigned int n = 0; n < nodeArray->size; n++) {
+                destroyNodeArray(nodeArray->array[n]);
+                nodeArray->array[n] = NULL;
+            }
+            free(nodeArray->array);
+            nodeArray->array = NULL;
+        }
+
+        nodeArray->size = 0;
+        free(nodeArray);
+    }
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 }
 // -----------------------------------------------------------------------------
 
@@ -46,55 +101,49 @@ def all_possible_trees_2b(n) :
                 list_currRotRight = list_right[num_rightIdx]
                 list_nodes[num_rotIdx] = Node(list_currRotLeft, list_currRotRight)
                 num_rotIdx += 1
-                return list_nodes
+    return list_nodes
 */
 
 // =============================================================================
-T_NODEARRAY* newNodeArray(unsigned int size) {
+T_NODEARRAY* createAllTrees(unsigned int n) {
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    T_NODEARRAY* nodeArray = malloc(sizeof(T_NODEARRAY));
-    if (nodeArray != NULL)
-    {
-        nodeArray->size = size;
-        nodeArray->array = NULL;
-        nodeArray->node = NULL;
-        if (size != 0) {
-            nodeArray->array = malloc(size * sizeof(T_NODEARRAY*));
-            if (nodeArray->array != NULL) {
-                for (unsigned int n = 0; n < size; n++) {
-                    nodeArray->array[n] = newNodeArray(0);
+    T_NODEARRAY* arr = NULL;
+    if (n > 0) {
+        arr = newNodeArray(catalanNumbers[n - 1]);
+    }
+    if (n > 1) {
+        unsigned int num_rotIdx = 0;
+        for (unsigned int s = 1; s < n; s++) {
+            T_NODEARRAY* arrL = createAllTrees(s);
+            T_NODEARRAY* arrR = createAllTrees(n - s);
+
+            for (unsigned int kL = 0; kL < arrL->size; kL++) {
+                T_NODEARRAY* arrL_curr = arrL->array[kL];
+                for (unsigned int kR = 0; kR < arrR->size; kR++) {
+                    T_NODEARRAY* arrR_curr = arrR->array[kR];
+                    
+                    //if (arrL->size == 1)
+                    //    arrL_curr->node->index = 1; // mark as leaf
+                    //if (arrR->size == 1)
+                    //    arrR_curr->node->index = 1; // mark as leaf
+                    arr->array[num_rotIdx]->node->left = newNode();
+                    *(arr->array[num_rotIdx]->node->left) = *(arrL_curr->node);
+                    //arrL_curr->node = NULL; // copied, nullify pointer
+
+                    arr->array[num_rotIdx]->node->right = newNode();
+                    *(arr->array[num_rotIdx]->node->right) = *(arrR_curr->node);
+                    //arrR_curr->node = NULL; // copied, nullify pointer
+
+                    num_rotIdx++;
                 }
             }
+            //destroyNodeArray(arrL);
+            //arrL == NULL;
+            //destroyNodeArray(arrR);
+            //arrR == NULL;
         }
     }
-    return nodeArray;
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-}
-// -----------------------------------------------------------------------------
-
-// =============================================================================
-void destroyNodeArray(T_NODEARRAY* nodeArray) {
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    if (nodeArray != NULL)
-    {
-        if (nodeArray->node != NULL) {
-            destroyNode(nodeArray->node);
-            nodeArray->node = NULL;
-        }
-
-        if (nodeArray->array != NULL) {
-            if (nodeArray->size != 0) {
-                for (unsigned int n = 0; n < nodeArray->size; n++) {
-                    destroyNodeArray(nodeArray->array[n]);
-                    nodeArray->array[n] = NULL;
-                }
-            }
-            free(nodeArray->array);
-            nodeArray->array = NULL;
-        }
-        nodeArray->size = 0;
-        free(nodeArray);
-    }
+    return arr;
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 }
 // -----------------------------------------------------------------------------
@@ -119,6 +168,8 @@ T_NODE* createNode(unsigned int leafCount, int level) {
 // =============================================================================
 void destroyNode(T_NODE* node) {
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    printf("destroyNode(%p)\n", (void*)node);
+    
     if (node != NULL) {
         destroyNode(node->left);
         node->left = NULL;
