@@ -13,9 +13,9 @@
 
 #include "tree.h"
 
-#define TEST_NLEAF 9
-#define TEST_NTREE 1430
-#define TEST_NNODE 17
+#define TEST_NLEAF 4
+#define TEST_NTREE 5
+#define TEST_NNODE 7
 
 T_NODEDATA* createData() {
     return NULL;
@@ -43,6 +43,25 @@ void analyzeNode(T_NODE* node, int* index, unsigned char* arr)
 
 int main(int argc, char** argv)
 {
+    
+    T_NODE** nodeCache = NULL;
+    T_NODE** trees = createAllTrees_v2(NULL, TEST_NLEAF, 0);
+    //unsigned int size = TEST_NTREE;
+    T_NODE nodes[TEST_NTREE];
+    unsigned char arrs[TEST_NTREE][TEST_NNODE + 1];
+
+    int index = 0;
+    for (unsigned int i = 0; i < TEST_NTREE; i++) {
+        nodes[i] = *(trees[i]); // copy?
+        index = 0;
+        arrs[i][TEST_NNODE] = '\0';
+        analyzeNode(&(nodes[i]), &index, arrs[i]);
+    }
+
+    for (unsigned int i = TEST_NTREE-1; i >= 0; i--) {
+        destroyNode(trees[i]);
+    }
+    /*
     T_NODEARRAY* trees = createAllTrees(TEST_NLEAF);
     
     T_NODE nodes[TEST_NTREE];
@@ -57,5 +76,7 @@ int main(int argc, char** argv)
     }
     
     destroyNodeArray(trees);
+    */
+
     return 0;
 }

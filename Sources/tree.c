@@ -15,7 +15,7 @@ const unsigned long int catalanNumbers[20] = {
 // -----------------------------------------------------------------------------
 
 // =============================================================================
-T_NODE* newNode() {
+T_NODE* newNode(const char* message) {
     T_NODE* node = malloc(sizeof(T_NODE));
     if (node != NULL)
     {
@@ -24,7 +24,7 @@ T_NODE* newNode() {
         node->right = NULL;
         node->data = NULL;
     }
-    printf("newNode(%p)\n", (void*)node);
+    printf("newNode: %s, %p\n", message, (void*)node);
     return node;
 }
 // -----------------------------------------------------------------------------
@@ -49,7 +49,7 @@ T_NODEARRAY* newNodeArray(unsigned int size) {
         }
         else if (size == 0)
         {
-            nodeArray->node = newNode();
+            nodeArray->node = newNode("leaf");
         }
     }
     return nodeArray;
@@ -126,11 +126,11 @@ T_NODEARRAY* createAllTrees(unsigned int n) {
                     //    arrL_curr->node->index = 1; // mark as leaf
                     //if (arrR->size == 1)
                     //    arrR_curr->node->index = 1; // mark as leaf
-                    arr->array[num_rotIdx]->node->left = newNode();
+                    arr->array[num_rotIdx]->node->left = newNode("notsure");
                     *(arr->array[num_rotIdx]->node->left) = *(arrL_curr->node);
                     //arrL_curr->node = NULL; // copied, nullify pointer
 
-                    arr->array[num_rotIdx]->node->right = newNode();
+                    arr->array[num_rotIdx]->node->right = newNode("notsure");
                     *(arr->array[num_rotIdx]->node->right) = *(arrR_curr->node);
                     //arrR_curr->node = NULL; // copied, nullify pointer
 
@@ -149,9 +149,54 @@ T_NODEARRAY* createAllTrees(unsigned int n) {
 // -----------------------------------------------------------------------------
 
 // =============================================================================
+T_NODE** createAllTrees_v2(
+    T_NODE** linearNodeCache, 
+    unsigned int n, 
+    unsigned int level) {
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    unsigned int size = 0;
+    T_NODE** nodes = NULL;
+
+    if (n > 0) {
+        size = catalanNumbers[n - 1];
+        nodes = malloc(size * sizeof(T_NODE*));
+    }
+
+    if (n == 1) {
+        nodes[0] = newNode("leaf"); // create leaf node
+    }
+    if (n >= 2) {
+        unsigned int rotIdx = 0;
+        for (unsigned int s = 1; s < n; s++) {
+            T_NODE** nodesL = createAllTrees_v2(NULL, s, level + 1);
+            T_NODE** nodesR = createAllTrees_v2(NULL, n - s, level+1);
+
+            unsigned int sizeL = catalanNumbers[s - 1];
+            unsigned int sizeR = catalanNumbers[(n - s) - 1];
+
+            for (unsigned int kL = 0; kL < sizeL; kL++) {
+                for (unsigned int kR = 0; kR < sizeR; kR++) {
+                    nodes[rotIdx] = newNode("subtree");
+                    nodes[rotIdx]->left = nodesL[kL];
+                    nodes[rotIdx]->right = nodesR[kR];
+                    rotIdx++;
+                }
+            }
+            free(nodesL);
+            free(nodesR);
+        }
+    }
+
+    return nodes;
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+}
+// -----------------------------------------------------------------------------
+
+
+// =============================================================================
 T_NODE* createNode(unsigned int leafCount, int level) {
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    T_NODE* node = newNode();
+    T_NODE* node = newNode("hmm?");
     if (node != NULL)
     {
         node->left = createNode(leafCount, level + 1);
@@ -164,6 +209,32 @@ T_NODE* createNode(unsigned int leafCount, int level) {
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 }
 // -----------------------------------------------------------------------------
+
+// =============================================================================
+T_NODE** linearizeTree(T_NODE* root, unsigned int treeSize) {
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    T_NODE** nodes = malloc(treeSize * sizeof(T_NODE*));
+    
+    if (root != NULL) {
+        unsigned int idx = 0;
+        T_NODE* node = NULL;
+
+        node = root->left;
+        while (node != NULL) {
+            nodes[idx++] = node;
+            node = node->left;
+        }
+        node = root->right;
+        while (node != NULL) {
+            nodes[idx++] = node;
+            node = node->left;
+        }
+
+    }
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+}
+// -----------------------------------------------------------------------------
+
 
 // =============================================================================
 void destroyNode(T_NODE* node) {

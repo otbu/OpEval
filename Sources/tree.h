@@ -68,6 +68,11 @@ T_TREE* createTree(unsigned int leafCount);
 void destroyTree(T_TREE* tree);
 
 T_NODEARRAY* createAllTrees(unsigned int n);
+T_NODE** createAllTrees_v2(
+    T_NODE** linearNodeCache,
+    unsigned int n,
+    unsigned int level);
+T_NODE** linearizeTree(T_NODE* root, unsigned int treeSize);
 // -----------------------------------------------------------------------------
 
 // =============================================================================
