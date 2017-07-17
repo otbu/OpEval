@@ -58,9 +58,9 @@ int main(int argc, char** argv)
         analyzeNode(&(nodes[i]), &index, arrs[i]);
     }
 
-    for (unsigned int i = TEST_NTREE-1; i >= 0; i--) {
-        destroyNode(trees[i]);
-    }
+    //for (unsigned int i = TEST_NTREE-1; i >= 0; i--) {
+        //destroyNode(trees[i]);
+    //}
     /*
     T_NODEARRAY* trees = createAllTrees(TEST_NLEAF);
     

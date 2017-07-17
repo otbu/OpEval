@@ -161,6 +161,8 @@ T_NODE** createAllTrees_v2(
         size = catalanNumbers[n - 1];
         nodes = malloc(size * sizeof(T_NODE*));
     }
+    printf( 
+        "ENTER: (n=%2u, level=%2u), Cn=%4u\n", n, level, size);
 
     if (n == 1) {
         nodes[0] = newNode("leaf"); // create leaf node
@@ -179,13 +181,19 @@ T_NODE** createAllTrees_v2(
                     nodes[rotIdx] = newNode("subtree");
                     nodes[rotIdx]->left = nodesL[kL];
                     nodes[rotIdx]->right = nodesR[kR];
+                    if (level == 0) {
+                        printf("root %u\n", rotIdx);
+                    }
                     rotIdx++;
                 }
             }
             free(nodesL);
             free(nodesR);
         }
+
     }
+    printf(
+        "EXIT: (n=%2u, level=%2u), Cn=%4u\n", n, level, size);
 
     return nodes;
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -229,8 +237,8 @@ T_NODE** linearizeTree(T_NODE* root, unsigned int treeSize) {
             nodes[idx++] = node;
             node = node->left;
         }
-
     }
+    return nodes;
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 }
 // -----------------------------------------------------------------------------
